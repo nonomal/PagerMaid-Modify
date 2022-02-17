@@ -133,6 +133,20 @@ parseqr_content: 内容
 parseqr_e_noqr: 回复的附件不是 QR 码。
 parseqr_log: 已解析一张带有 QR 码的消息，内容：
 
+# backup
+## backup
+backup_des: 备份数据文件到本地以及日志频道，支持数据库的全量备份，安全可靠。
+backup_process: 备份中，请耐心等待备份程序完成...
+backup_success_channel: 数据文件备份完成并已打包发送到 Log 频道！
+backup_success: 数据文件备份完成！
+## recovery
+recovery_des: 从本地备份或者所回复的备份文件中恢复数据，支持数据库的全量恢复，方便快速。
+recovery_file_error: 未知的文件，可能并不是通过 PagerMaid 所备份的文件类型。
+recovery_down: 正在下载备份文件到本地... 在备份的过程中，建议减少使用 PagerMaid
+recovery_process: 开始恢复，可能需要一定的时间。。
+recovery_file_not_found: 找不到可用的备份文件。
+recovery_success: 備份恢复完成！
+
 # captions
 ## convert
 convert_des: 回复某条附件消息然后转换为图片输出
@@ -176,6 +190,7 @@ translate_des: 通过 Google 翻译将目标消息翻译成指定的语言。（
 translate_parameters: <文本>
 translate_processing: 正在生成翻译中 . . .
 translate_ValueError: 出错了呜呜呜 ~ 找不到目标语言，请更正配置文件中的错误。
+translate_ImportError: 出错了呜呜呜 ~ 请先安装 translators 模块。
 translate_hits: 文本翻译
 translate_original_lang: 源语言
 translate_tg_limit_uploading_file: 输出超出 TG 限制，正在尝试上传文件。
@@ -240,7 +255,6 @@ coin_lost: 我丢了硬币
 ## lang
 lang_des: 切换语言。
 lang_change_to: 语言已切换到
-lang_reboot: 正在重新启动。
 lang_current_lang: 当前语言是
 lang_all_lang: 所有可用的语言有：
 ## alias
@@ -416,7 +430,7 @@ pingdc_3: DC3(美国-迈阿密)
 pingdc_4: DC4(荷兰-阿姆斯特丹)
 pingdc_5: DC5(新加坡)
 ## ping
-ping_des: 计算运行 PagerMaid-Modify 的服务器和 Telegram 服务器之间的延迟。
+ping_des: 计算 PagerMaid-Modify 与 Telegram 之间的封包和信息延迟。
 ## topcloud
 topcloud_des: 生成一张资源占用的词云图片。
 topcloud_processing: 生成图片中 . . .
@@ -475,7 +489,8 @@ eval_need_dev: '**请注意：此命令可以直接操作您的账户**
 此命令仅适用于开发者，如果您知道您在做什么的话，请手动在 Redis 数据库配置 dev 项为任意值或者在 data 文件夹下创建 dev 文件。'
 ## restart
 restart_des: 使 PagerMaid-Modify 重新启动
-restart_processing: 尝试重新启动 PagerMaid-Modify.
+restart_processing: 尝试重启 PagerMaid-Modify...
+restart_complete: PagerMaid-Modify 重启完成。
 restart_log: PagerMaid-Modify 重新启动。
 ## trace
 trace_des: 跟踪 URL 的重定向。
@@ -511,7 +526,7 @@ update_change_log: 更新日志
 update_log_too_big: 更新日志太长，正在附加文件。
 update_hint: 请使用以下命令进行更新
 update_found_pulling: 找到更新，正在拉取 . . .
-update_success: 更新成功
+update_success: 更新成功。
 update_failed: 更新失败
 update_auto_upgrade_git_failed_ubuntu: 检测到您的系统是Ubuntu或Debain，尝试自动升级git但失败,请手动升级.
 update_auto_upgrade_git_failed_cent: 检测到您的系统是CentOS，尝试自动升级git但失败,请手动升级.

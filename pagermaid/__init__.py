@@ -12,7 +12,7 @@ from time import time
 from os import getcwd, makedirs, environ, remove
 from os.path import exists
 from sys import version_info, platform
-from yaml import load, FullLoader, safe_load
+from yaml import load, FullLoader
 from json import load as load_json
 from shutil import copyfile
 from redis import StrictRedis
@@ -28,7 +28,8 @@ from telethon.errors import AuthKeyError
 from telethon.errors.rpcerrorlist import MessageNotModifiedError, MessageIdInvalidError, ChannelPrivateError, \
     ChatSendMediaForbiddenError, YouBlockedUserError, FloodWaitError, ChatWriteForbiddenError, \
     AuthKeyDuplicatedError, ChatSendStickersForbiddenError, SlowModeWaitError, MessageEditTimeExpiredError, \
-    PeerIdInvalidError, AuthKeyUnregisteredError, UserBannedInChannelError, UserDeactivatedBanError, PeerFloodError
+    PeerIdInvalidError, AuthKeyUnregisteredError, UserBannedInChannelError, UserDeactivatedBanError, PeerFloodError, \
+    SessionRevokedError
 from telethon.errors.common import AlreadyInConversationError
 from requests.exceptions import ChunkedEncodingError
 from requests.exceptions import ConnectionError as ConnectedError
@@ -39,6 +40,8 @@ from http.client import RemoteDisconnected
 from urllib.error import URLError
 from concurrent.futures._base import TimeoutError
 from redis.exceptions import ResponseError
+
+from languages.languages import Lang
 
 persistent_vars = {}
 module_dir = __path__[0]
@@ -68,25 +71,7 @@ except FileNotFoundError:
     exit(1)
 
 # i18n
-lang_dict: dict = {}
-
-try:
-    with open(f"languages/built-in/{config['application_language']}.yml", "r", encoding="utf-8") as f:
-        lang_dict = safe_load(f)
-except Exception as e:
-    print("Reading language YAML file failed")
-    print(e)
-    exit(1)
-# Customization
-try:
-    with open(f"languages/custom.yml", "r", encoding="utf-8") as f:
-        lang_temp = safe_load(f)
-    for key, value in lang_temp.items():
-        lang_dict[key] = value
-except FileNotFoundError:
-    pass
-except Exception as e:
-    logs.fatal("Reading custom YAML file failed")
+language = Lang(config["application_language"])
 
 # alias
 alias_dict: dict = {}
@@ -103,8 +88,7 @@ if exists("data/alias.json"):
 
 def lang(text: str) -> str:
     """ i18n """
-    result = lang_dict.get(text, text)
-    return result
+    return language.get(text)
 
 
 analytics = None
@@ -173,14 +157,9 @@ mtp_secret = config.get('mtp_secret', '').strip()
 redis_host = config.get('redis').get('host', 'localhost')
 redis_port = config.get('redis').get('port', 6379)
 redis_db = config.get('redis').get('db', 14)
-if strtobool(config.get('ipv6', 'False')):
-    use_ipv6 = True
-else:
-    use_ipv6 = False
-if strtobool(config.get('silent', 'True')):
-    silent = True
-else:
-    silent = False
+redis_password = config.get('redis').get('password', '')
+use_ipv6 = bool(strtobool(config.get('ipv6', 'False')))
+silent = bool(strtobool(config.get('silent', 'True')))
 if api_key is None or api_hash is None:
     logs.info(
         lang('config_error')
@@ -234,7 +213,7 @@ else:
     bot = TelegramClient(session_string, api_key, api_hash, auto_reconnect=True, use_ipv6=use_ipv6)
 user_id = 0
 user_bot = False
-redis = StrictRedis(host=redis_host, port=redis_port, db=redis_db)
+redis = StrictRedis(host=redis_host, port=redis_port, db=redis_db, password=redis_password)
 
 
 async def save_id():
@@ -264,10 +243,6 @@ async def save_id():
     logs.info(f"{lang('save_id')} {me.first_name}({user_id})")
 
 
-with bot:
-    bot.loop.run_until_complete(save_id())
-
-
 def before_send(event, hint):
     global report_time
     exc_info = hint.get("exc_info")
@@ -283,8 +258,8 @@ def before_send(event, hint):
                                              AuthKeyUnregisteredError, UserBannedInChannelError, AuthKeyError,
                                              CancelError, AsyncTimeoutError)):
         return
-    elif exc_info and isinstance(exc_info[1], UserDeactivatedBanError):
-        # The user has been deleted/deactivated
+    elif exc_info and isinstance(exc_info[1], (UserDeactivatedBanError, SessionRevokedError)):
+        # The user has been deleted/deactivated or session revoked
         try:
             remove('pagermaid.session')
         except Exception as exc:
@@ -297,6 +272,8 @@ def before_send(event, hint):
         report_time = time()
         return event
 
+with bot:
+    bot.loop.run_until_complete(save_id())
 
 report_time = time()
 start_time = datetime.utcnow()
